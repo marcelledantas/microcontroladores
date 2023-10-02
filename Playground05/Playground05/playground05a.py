@@ -28,11 +28,11 @@ def main():
         
     # Depois é só criar um timer que receba essa função.
     # ATENÇÃO: lembre que eu passo só o nome da função, sem os parêntesis no final!
-    timer1 = Timer(5.0, timer1_terminou)
+    #timer1 = Timer(5.0, timer1_terminou)
     
     
     # Agora a parte final importante: inicie o timer com o start!
-    timer1.start()
+    #timer1.start()
     print("Timer de 5 segundos iniciado. Aguarde...")
     
     
@@ -162,7 +162,87 @@ def main():
     
     global timerlcd
     timerlcd = Timer(1.0, escreve_lcd)
-    timerlcd.start()
+    #timerlcd.start()
+    
+    leds = [LED(21), LED(22), LED(23), LED(24), LED(25)]
+    
+    global led_atual
+    led_atual = None
+    
+    global inicio_seq
+    inicio_seq = 0
+    
+    global sequencia_t
+    sequencia_t = None
+    
+    global timer_seq
+    timer_seq = None
+    
+    global led_anterior
+    led_anterior = None
+    
+    global ultimo_led
+    ultimo_led = None
+    
+    # Questão de prova: a função Timer do python abre uma thread e não trava a execução do restante do programa
+    # A questão era: dado uma sequencia de dígitos representando um número do led, acender o led correspondente em
+    # um intervalo de 1s, 1 led por vez. Não é permitido utilizar a função SLEEP() - que bloqueia a execução do programa.
+    
+    def cancela_ultimo_led():
+        global timer_seq
+        global ultimo_led
+
+        print("ultimo led")
+        ultimo_led.off()
+        timer_seq.cancel()
+        timer_seq = None
+    
+    def mostra_sequencia_led(sequencia):
+        global timer_seq
+        global sequencia_t
+        
+        sequencia_t = sequencia
+        print(len(sequencia_t))
+        timer_seq = Timer(1.0, func_aux)
+        timer_seq.start()
+            
+    def func_aux():
+        global inicio_seq
+        global timer_seq
+        global sequencia_t
+        global led_atual
+        global led_anterior
+        global ultimo_led
+        for index in range(inicio_seq, len(sequencia_t)):
+            
+            print("Entrou no loop")
+            if(led_atual != None):
+                led_atual.off()
+            
+            if((inicio_seq) + 1 == len(sequencia_t)):
+                print("ultimo led: " + str(int(sequencia_t[index])))
+                ultimo_led = leds[int(sequencia_t[index])]
+                leds[int(sequencia_t[index])].on()
+                timer_seq.cancel()
+                timer_seq = None
+            led_atual = leds[int(sequencia_t[index])]
+            print("index: " + str(index))
+            inicio_seq += 1            
+            break
+        
+        led_atual.on()
+        
+        if(ultimo_led != None):
+            timer_seq = Timer(1.0, cancela_ultimo_led)
+            timer_seq.start()
+                    
+        timer_seq = Timer(1.0, func_aux)
+        timer_seq.start()
+        
+        
+    mostra_sequencia_led("2141")
+    
+    
     # Agora vamos para a parte de hardware, começando com o sensor de luz.
     sensor_de_luz = LightSensor(8)
     
@@ -181,8 +261,8 @@ def main():
         print("Ficou mais escuro que o limiar configurado.")
         
     
-    sensor_de_luz.when_light = luz_detectada
-    sensor_de_luz.when_dark = escuridao_detectada
+    #sensor_de_luz.when_light = luz_detectada
+    #sensor_de_luz.when_dark = escuridao_detectada
     
     
     # O limiar padrão de claro/escuro é 0.1 (bem baixo), mas a gente pode reconfigurar.
@@ -211,8 +291,8 @@ def main():
         print("Sensor detectou inércia.")
         
     
-    sensor_de_movimento.when_motion = movimento_detectado
-    sensor_de_movimento.when_no_motion = inercia_detectada
+    #sensor_de_movimento.when_motion = movimento_detectado
+    #sensor_de_movimento.when_no_motion = inercia_detectada
     
 
     # Só que essas detecções são um pouco mais peculiares que as anteriores.

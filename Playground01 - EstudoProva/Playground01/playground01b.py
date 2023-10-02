@@ -41,29 +41,61 @@ def main():
             led1.on()
     
     def avanca_proxima():
-        player.pt_step(1)
+        if(player.speed == 2):
+            print("solta botao e seta velocidade")
+            player.speed = 1
+        else:
+            player.pt_step(1)
     
     def volta_faixa():
         if(player.time_pos > 2):
-             player.time_pos = 0
+            player.time_pos = 0
         else:
             player.pt_step(-1)
+    
+    def aumenta_velocidade():
+        player.speed = 2
+        
+    global inicio;
+    inicio = 0
+    global fim;
+    fim = 0
+    
+    def rolarTexto(tamanhoFaixa):
+        if (tamanhoFaixa < 16):
+            return;
+        
+        global inicio;
+        global fim;
+        
+        inicio +=1;
+        fim += 1;
+            
+        if (inicio > tamanhoFaixa):
+            inicio = 0;
+            fim = 16;
       
     
     button2.when_pressed = pausa_tocar_playlist
-    button3.when_pressed = avanca_proxima
+    
+    button3.when_held = aumenta_velocidade
+    button3.when_released = avanca_proxima
+    
     button1.when_pressed = volta_faixa
 
-    
     while True:       
-        
-        if(player.paused != True and player.metadata != None):
+                
+        if(player.metadata is not None and player.metadata['Title'] is not None):
             print(player.metadata)
-            lcd.message(str(player.metadata['Title']))
-        else:
             lcd.clear()
-            lcd.message(str(player.metadata['Title']))
-        sleep(0.2)
+            faixa = player.metadata["Title"]
+            lcd.message(str(faixa[inicio:fim]) + '\n')
+            lcd.message('%02d:%02d de %02d:%02d' %
+                        (player.time_pos / 60, player.time_pos % 60,
+                        player.length / 60, player.length % 60))
+            rolarTexto(len(faixa));
+                      
+        sleep(0.5)
     
     
     # Não escreva nenhum código depois do while True!
